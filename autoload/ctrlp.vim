@@ -100,6 +100,7 @@ let [s:pref, s:bpref, s:opts, s:new_opts, s:lc_opts] =
 	\ 'bufpath_mod':           ['s:bufpath_mod', ':~:.:h'],
 	\ 'formatline_func':       ['s:flfunc', 's:formatline(v:val)'],
 	\ 'user_command_async':    ['s:usrcmdasync', 0],
+	\ 'path_highlights':       ['s:path_highlights', {}],
 	\ }, {
 	\ 'open_multiple_files':   's:opmul',
 	\ 'regexp':                's:regexp',
@@ -761,6 +762,9 @@ fu! s:Render(lines, pat)
 	" Highlighting
 	if s:dohighlight()
 		cal s:highlight(pat, s:mathi[1])
+		for part in keys(s:path_highlights)
+			exe "syntax match path_part_" . part . " /" . part . "\\ze[/]/"
+		endfo
 	en
 	setl noma cul
 	exe cur_cmd
@@ -2803,6 +2807,13 @@ fu! ctrlp#init(type, ...)
 			retu
 		en
 	en
+	for [path_part, colorings] in items(s:path_highlights)
+		let highlight_cmd = "highlight path_part_" . path_part
+		for key in keys(colorings)
+			let highlight_cmd .= " " . join([key, colorings[key]], "=")
+		endfo
+		exe highlight_cmd
+	endfo
 	" Fixed issue ctrlpvim/ctrlp.vim#463 : Opening 'ctrlp' in certain modes
 	" (':CtrlPBufTag', ':CtrlPLine') seems to trigger a partially deffective
 	" intialisation (for example, syntax highlighting not working as expected).
